@@ -1,0 +1,33 @@
+services:
+  api:
+    image: python
+    container_name: pyapi
+    ports:
+      - 8000:8000
+    volumes:
+      - .:/app
+    command: bash -c "cd /app && pip install -r requirements.txt && uvicorn main:app --host 0.0.0.0 --reload"
+    networks:
+      net1:
+        ipv4_address: 172.19.0.2
+  
+  view:
+    image: node
+    container_name: view
+    ports:
+      - 80:5173
+    volumes:
+      - .:/app
+#      - ./global_node_modules:/usr/local/lib/node_modules
+    command: bash -c "cd /app && npm install -g vite && vite --host"
+    networks:
+      net1:
+        ipv4_address: 172.19.0.3
+
+networks:
+  net1:
+    driver: bridge
+    ipam:
+      config:
+        - subnet: 172.19.0.0/16
+          gateway: 172.19.0.1
