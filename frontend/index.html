@@ -1,0 +1,96 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Producer-Consumer Queue</title>
+  <link rel="stylesheet" href="style.css">
+</head>
+
+<body>
+  <div class="container">
+    <div class="queue-container">
+      <h2>Queue (Max 100)</h2>
+      <div id="queue" class="queue"></div>
+    </div>
+    <div class="status-container">
+      <h2>Producer-Consumer Status</h2>
+      <div id="producer-status" class="status">Waiting...</div>
+    </div>
+
+    <div class="controls">
+      <button id="start-btn">Start Pool</button>
+      <button id="stop-btn">Stop Pool</button>
+      <button id="connect-ws-btn">Connect WebSocket</button>
+      <button id="disconnect-ws-btn">Disconnect WebSocket</button>
+
+      <div class="settings">
+        <label for="producer-count">Producers:</label>
+        <input id="producer-count" type="number" value="6" />
+        <label for="consumer-count">Consumers:</label>
+        <input id="consumer-count" type="number" value="5" />
+        <button id="set-pool-btn">Set Pool Size</button>
+      </div>
+    </div>
+  </div>
+
+  <script>
+    let socket;
+    const queueContainer = document.getElementById('queue');
+    const producerStatus = document.getElementById('producer-status');
+    const startBtn = document.getElementById('start-btn');
+    const stopBtn = document.getElementById('stop-btn');
+    const connectWsBtn = document.getElementById('connect-ws-btn');
+    const disconnectWsBtn = document.getElementById('disconnect-ws-btn');
+    const setPoolBtn = document.getElementById('set-pool-btn');
+    const producerCountInput = document.getElementById('producer-count');
+    const consumerCountInput = document.getElementById('consumer-count');
+
+    // WebSocket 控制
+    connectWsBtn.addEventListener('click', () => {
+      socket = new WebSocket("ws://localhost:8000/ws");
+      socket.onmessage = function (event) {
+        const message = event.data;
+        producerStatus.textContent = message;
+        const queueSize = parseInt(message.split("Queue Size: ")[1]);
+        updateQueueDisplay(queueSize);
+      };
+    });
+
+    disconnectWsBtn.addEventListener('click', () => {
+      if (socket) {
+        socket.close();
+        producerStatus.textContent = "WebSocket Disconnected";
+      }
+    });
+
+    // 啟動/停止生產者和消費者池
+    startBtn.addEventListener('click', () => {
+      fetch("http://localhost:8000/start", { method: "POST" });
+    });
+
+    stopBtn.addEventListener('click', () => {
+      fetch("http://localhost:8000/stop", { method: "POST" });
+    });
+
+    // 設定生產者/消費者數量
+    setPoolBtn.addEventListener('click', () => {
+      const producerCount = producerCountInput.value;
+      const consumerCount = consumerCountInput.value;
+      fetch(`http://localhost:8000/set_pool?producer_count=${producerCount}&consumer_count=${consumerCount}`, { method: "POST" });
+    });
+
+    // 更新佇列顯示
+    function updateQueueDisplay(size) {
+      queueContainer.innerHTML = '';
+      for (let i = 0; i < size; i++) {
+        const task = document.createElement('div');
+        task.classList.add('task');
+        queueContainer.appendChild(task);
+      }
+    }
+  </script>
+</body>
+
+</html>

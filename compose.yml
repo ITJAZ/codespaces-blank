@@ -1,33 +1,24 @@
 services:
-  api:
-    image: python
-    container_name: pyapi
-    ports:
-      - 8000:8000
+  frontend:
+    build:
+      context: ./frontend
     volumes:
-      - .:/app
-    command: bash -c "cd /app && pip install -r requirements.txt && uvicorn main:app --host 0.0.0.0 --reload"
-    networks:
-      net1:
-        ipv4_address: 172.19.0.2
-  
-  view:
-    image: node
-    container_name: view
+      - ./frontend:/app
     ports:
-      - 80:5173
-    volumes:
-      - .:/app
-#      - ./global_node_modules:/usr/local/lib/node_modules
-    command: bash -c "cd /app && npm install -g vite && vite --host"
+      - "80:3000"
     networks:
-      net1:
-        ipv4_address: 172.19.0.3
+      - app-network
+
+  backend:
+    build:
+      context: ./backend
+    volumes:
+      - ./backend:/app
+    ports:
+      - "8000:8000"
+    networks:
+      - app-network
 
 networks:
-  net1:
+  app-network:
     driver: bridge
-    ipam:
-      config:
-        - subnet: 172.19.0.0/16
-          gateway: 172.19.0.1
