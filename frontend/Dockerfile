@@ -6,6 +6,8 @@ COPY package.json .
 
 RUN npm install
 
+RUN npm install -g vite
+
 # add `/app/node_modules/.bin` to $PATH
 ENV PATH /app/node_modules/.bin:$PATH
 
